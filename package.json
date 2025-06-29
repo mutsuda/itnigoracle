@@ -1,0 +1,24 @@
+{
+  "name": "itnig-ai-backend",
+  "version": "1.0.0",
+  "description": "Backend de IA para itnig con agentes especializados",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step needed for Serverless Functions'",
+    "vercel-build": "echo 'No build step needed for Serverless Functions'",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "csv-parser": "^3.2.0",
+    "dotenv": "^16.6.1",
+    "openai": "^4.20.1"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
