@@ -17,9 +17,8 @@ const openai = new OpenAI({
 // Almacén temporal de conversaciones (en producción usar Redis/Database)
 const conversations = new Map();
 
-// Almacén para datos del portfolio y embeddings
+// Almacén para datos del portfolio
 let portfolioData = [];
-let portfolioEmbeddings = [];
 
 // Contexto sobre itnig para la IA
 const ITNIG_CONTEXT = `
@@ -87,134 +86,6 @@ function parsePortfolioCSV() {
   });
 }
 
-// Función para crear embeddings del portfolio
-async function createPortfolioEmbeddings(companies) {
-  const embeddings = [];
-  
-  for (const company of companies) {
-    // Crear una representación de texto completa de la empresa
-    const companyText = `
-Empresa: ${company.name}
-${company.founders ? `Fundadores: ${company.founders}` : ''}
-${company.shortDescription ? `Descripción: ${company.shortDescription}` : ''}
-${company.longDescription ? `Descripción Completa: ${company.longDescription}` : ''}
-${company.focus ? `Sector: ${company.focus}` : ''}
-${company.founded ? `Fundada: ${company.founded}` : ''}
-${company.status ? `Estado: ${company.status}` : ''}
-${company.vehicle ? `Vehículo de Inversión: ${company.vehicle}` : ''}
-${company.website ? `Website: ${company.website}` : ''}
-${company.quote ? `Cita: "${company.quote}" - ${company.quoteBy}` : ''}
-    `.trim();
-
-    try {
-      const embedding = await openai.embeddings.create({
-        model: "text-embedding-3-small",
-        input: companyText,
-        encoding_format: "float",
-      });
-      
-      embeddings.push({
-        company: company,
-        embedding: embedding.data[0].embedding,
-        text: companyText
-      });
-    } catch (error) {
-      console.error(`Error creando embedding para ${company.name}:`, error);
-    }
-  }
-  
-  return embeddings;
-}
-
-// Función para calcular similitud coseno
-function cosineSimilarity(vecA, vecB) {
-  const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
-  const normA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
-  const normB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
-  return dotProduct / (normA * normB);
-}
-
-// Función para crear embeddings bajo demanda
-async function ensureEmbeddings() {
-  if (portfolioEmbeddings.length > 0) {
-    return; // Ya tenemos embeddings
-  }
-  
-  if (portfolioData.length === 0) {
-    console.log('No hay datos del portfolio para crear embeddings');
-    return;
-  }
-  
-  console.log('Creando embeddings bajo demanda...');
-  try {
-    // Procesar todas las empresas del portfolio
-    portfolioEmbeddings = await createPortfolioEmbeddings(portfolioData);
-    console.log(`Embeddings creados para ${portfolioEmbeddings.length} empresas`);
-  } catch (error) {
-    console.error('Error creando embeddings:', error);
-  }
-}
-
-// Función para buscar por nombre exacto como fallback
-function searchByExactName(query) {
-  const queryLower = query.toLowerCase().trim();
-  return portfolioData.filter(company => {
-    const nameLower = (company.name || '').toLowerCase();
-    // Buscar coincidencias exactas o parciales en el nombre
-    return nameLower.includes(queryLower) || queryLower.includes(nameLower);
-  });
-}
-
-// Función para buscar en el portfolio usando RAG
-async function searchPortfolio(query, topK = 5) {
-  // Asegurar que tenemos embeddings
-  await ensureEmbeddings();
-  
-  if (portfolioEmbeddings.length === 0) {
-    console.log('No hay embeddings disponibles, usando búsqueda por nombre exacto');
-    // Fallback: búsqueda por nombre exacto
-    const exactMatches = searchByExactName(query);
-    return exactMatches.map(company => ({
-      similarity: 1.0,
-      company: company,
-      text: `Empresa: ${company.name}\n${company.shortDescription || ''}\n${company.longDescription || ''}`
-    }));
-  }
-
-  try {
-    // Crear embedding para la consulta
-    const queryEmbedding = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: query,
-      encoding_format: "float",
-    });
-
-    const queryVec = queryEmbedding.data[0].embedding;
-    
-    // Calcular similitudes
-    const similarities = portfolioEmbeddings.map((item, index) => ({
-      index,
-      similarity: cosineSimilarity(queryVec, item.embedding),
-      company: item.company,
-      text: item.text
-    }));
-
-    // Ordenar por similitud y devolver top K resultados
-    return similarities
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, topK);
-  } catch (error) {
-    console.error('Error buscando en portfolio:', error);
-    // Fallback: búsqueda por nombre exacto
-    const exactMatches = searchByExactName(query);
-    return exactMatches.map(company => ({
-      similarity: 1.0,
-      company: company,
-      text: `Empresa: ${company.name}\n${company.shortDescription || ''}\n${company.longDescription || ''}`
-    }));
-  }
-}
-
 // Función para inicializar datos del portfolio
 async function initializePortfolio() {
   try {
@@ -229,8 +100,7 @@ async function initializePortfolio() {
     if (portfolioData.length > 0) {
       console.log('Primera empresa:', portfolioData[0].name);
       console.log('Última empresa:', portfolioData[portfolioData.length - 1].name);
-      // No crear embeddings inmediatamente para evitar timeout
-      console.log('Portfolio inicializado con datos. Los embeddings se crearán bajo demanda.');
+      console.log('Portfolio inicializado con datos completos.');
     } else {
       console.log('No se cargaron empresas del portfolio');
     }
@@ -316,7 +186,7 @@ async function handlePodcastQuestion(question, conversationHistory = []) {
   }
 }
 
-// Agente de Investment con RAG
+// Agente de Investment con portfolio completo como contexto
 async function handleInvestmentQuestion(question, conversationHistory) {
   try {
     // Detectar si es una pregunta sobre aplicar al fondo
@@ -339,10 +209,24 @@ El equipo de itnig revisa todas las propuestas y se pondrá en contacto contigo 
 🌐 **Enlace directo:** https://itnig.net/fund`;
     }
     
-    // Buscar información relevante en el portfolio
-    const searchResults = await searchPortfolio(question, 3);
+    // Crear contexto con todo el portfolio
+    let portfolioContext = '';
+    if (portfolioData.length > 0) {
+      portfolioContext = '\n\nPortfolio completo de itnig:\n';
+      portfolioData.forEach((company, index) => {
+        portfolioContext += `\n${index + 1}. **${company.name}**
+- Fundadores: ${company.founders || 'No especificado'}
+- Descripción: ${company.shortDescription || company.longDescription || 'No disponible'}
+- Sector: ${company.focus || 'No especificado'}
+- Estado: ${company.status || 'No especificado'}
+- Vehículo: ${company.vehicle || 'No especificado'}
+- Website: ${company.website || 'No disponible'}
+- Fundada: ${company.founded || 'No especificado'}
+- Exit: ${company.exit || 'No aplica'}\n`;
+      });
+    }
     
-    let context = `Eres un asesor de inversiones experto en el portfolio de itnig. 
+    const context = `Eres un asesor de inversiones experto en el portfolio de itnig. 
 
 IMPORTANTE: Solo puedes mencionar empresas que estén en la información del portfolio que te proporciono. NO inventes ni menciones empresas que no aparezcan en los datos.
 
@@ -354,19 +238,9 @@ Tienes conocimiento de:
 
 ${conversationHistory ? `Historial de la conversación:\n${conversationHistory}\n` : ''}
 
-Pregunta: "${question}"`;
+Pregunta: "${question}"${portfolioContext}
 
-    // Añadir información relevante del portfolio al contexto
-    if (searchResults.length > 0) {
-      context += '\n\nInformación relevante del portfolio:\n';
-      searchResults.forEach((result, index) => {
-        context += `\n${index + 1}. ${result.company.name}:\n${result.text}\n`;
-      });
-    } else {
-      context += '\n\nNo se encontró información específica del portfolio para esta consulta.';
-    }
-
-    context += `\n\nResponde de manera natural y útil, manteniendo el contexto de la conversación. SOLO menciona empresas que aparezcan en la información del portfolio proporcionada. Si no hay información específica sobre una empresa, di que no tienes esa información en lugar de inventar.`;
+Responde de manera natural y útil, manteniendo el contexto de la conversación. SOLO menciona empresas que aparezcan en la información del portfolio proporcionada. Si no hay información específica sobre una empresa, di que no tienes esa información en lugar de inventar.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
