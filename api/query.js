@@ -72,7 +72,7 @@ function parsePortfolioCSV() {
         };
         
         // Solo incluir empresas con datos significativos
-        if (company.name && (company.shortDescription || company.longDescription)) {
+        if (company.name && company.name.trim()) {
           results.push(company);
         }
       })
