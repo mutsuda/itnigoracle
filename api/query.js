@@ -172,9 +172,20 @@ async function searchPortfolio(query, topK = 5) {
 async function initializePortfolio() {
   try {
     console.log('Inicializando datos del portfolio...');
+    const csvPath = path.join(process.cwd(), 'portfolio.csv');
+    console.log('Ruta del CSV:', csvPath);
+    console.log('¿Existe el archivo?', fs.existsSync(csvPath));
+    
     portfolioData = await parsePortfolioCSV();
-    portfolioEmbeddings = await createPortfolioEmbeddings(portfolioData);
-    console.log(`Portfolio inicializado con ${portfolioData.length} empresas`);
+    console.log(`Datos del portfolio cargados: ${portfolioData.length} empresas`);
+    
+    if (portfolioData.length > 0) {
+      console.log('Primera empresa:', portfolioData[0].name);
+      portfolioEmbeddings = await createPortfolioEmbeddings(portfolioData);
+      console.log(`Portfolio inicializado con ${portfolioData.length} empresas y ${portfolioEmbeddings.length} embeddings`);
+    } else {
+      console.log('No se cargaron empresas del portfolio');
+    }
   } catch (error) {
     console.error('Error inicializando portfolio:', error);
   }
