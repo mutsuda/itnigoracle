@@ -22,18 +22,61 @@ let portfolioData = [];
 
 // Contexto sobre itnig para la IA
 const ITNIG_CONTEXT = `
-itnig es una empresa de Barcelona que se dedica a:
+itnig es un ecosistema integral de startups fundado en Barcelona en 2010. Aquí tienes la historia completa y evolución:
 
-1. **Inversión**: Fondo de inversión que invierte en startups tecnológicas. Portfolio diversificado con participaciones en empresas tecnológicas innovadoras.
+**Fundación y Primeros Años (2010-2012):**
+- Octubre 2010: Bernat Farrero (ingeniero informático) junto a Roger Campos funda Itnig como consultora de desarrollo web en la Universitat Politècnica de Catalunya, iniciando actividades "literalmente en un garaje" familiar en Barcelona. Se dedicó a crear proyectos tecnológicos para terceros.
+- 2011: Surge el primer proyecto propio. Tras colaborar con Pere Rius, Itnig co-funda Camaloon como plataforma de impresión bajo demanda de merchandising personalizado. En sus primeros meses logra €130.000 en ventas.
+- Febrero 2012: Camaloon expande con Pandalize, portal para artistas noveles. Itnig ya cuenta con 15 empleados y ha atraído €200.000 de inversión business angel.
+- Mayo 2012: Itnig evoluciona hacia un modelo de aceleradora de startups ("the hacker accelerator"). Comienza incubando proyectos externos, empezando con Playfulbet (plataforma social de apuestas deportivas). En 3 meses, Playfulbet alcanza 1.000 usuarios en 22 días.
 
-2. **Podcast**: "itnig podcast" donde entrevistan a emprendedores, inversores y expertos del ecosistema startup. Han tenido invitados como Juana Roig, Carlos Blanco, y otros líderes del sector.
+**Crecimiento como Venture Builder (2013-2019):**
+- Enero 2013: Playfulbet gana el certamen First Tuesday de startups en España tras superar los 10.000 usuarios.
+- Julio 2013: Itnig funda Quipu, solución SaaS de facturación y gestión contable en la nube, liderado por Roger Dobaño y Albert Bellonch.
+- 2014-2015: Se lanzan GymForLess (marketplace de gimnasios) y Parkimeter (reserva de parkings).
+- Octubre 2016: Se funda Factorial (software de RRHH) desde Itnig, co-creada por Bernat Farrero, Jordi Romero y Pau Ramon.
+- Febrero 2018: Primer gran exit - GymForLess es adquirida por Sodexo.
+- Agosto 2018: Playfulbet es vendida al grupo Exogroup, alcanzando cerca de 1 millón de usuarios.
+- Abril 2018: Itnig apuesta por el Real Estate, adquiriendo una planta adicional de oficinas (~600 m²) en el 22@ (Poblenou, Barcelona).
+- Septiembre 2019: Inaugura "Itnig Coffice" en Carrer Pujades 100, 900 m² con oficinas compartidas, salas de eventos y cafetería.
 
-3. **Real Estate**: 
-   - Coworking en Barcelona con espacios de trabajo colaborativo
-   - Restaurante "itnig restaurant" en sus instalaciones
-   - Espacios de eventos y networking
+**Evolución hacia Inversión (2020-presente):**
+- 2020: Itnig pivota hacia la inversión en startups de terceros. Lanza Itnig Future One, fondo seed de €2,5 millones para fases pre-seed/seed.
+- Enero 2021: Parkimeter es adquirida por EasyPark, tercer exit notable.
+- Marzo 2021: Itnig Podcast alcanza su episodio #200+.
+- 2022: Factorial cierra ronda Serie B de $80M liderada por Tiger Global, convirtiéndose en unicornio español.
+- Abril 2023: Abre "Entrepreneur", restaurante-cafetería en Calle Pujades 85.
+- Septiembre 2024: Lanza Itnig Capital, fondo de venture capital formal aprobado por la CNMV con €15 millones, enfocado en startups tecnológicas pre-seed/seed en España/Europa.
 
-4. **General**: itnig es un hub de innovación que conecta emprendedores, inversores y talento en el ecosistema tecnológico español.
+**Modelo Actual (2025):**
+A 15 años de su origen, Itnig se configura como un ecosistema integral que abarca:
+- Fábrica de empresas (12 startups propias, 3 vendidas exitosamente)
+- Fondo de inversión (Itnig Capital)
+- Espacios de coworking y eventos
+- Medios de difusión (podcast, eventos)
+- Restaurante propio
+
+Los fundadores continúan al frente, con Bernat Farrero como CEO de Itnig y CRO de Factorial, reinvirtiendo en nuevas generaciones de emprendedores.
+
+**Empresas Destacadas del Portfolio:**
+- Camaloon: Plataforma de merchandising personalizado
+- Quipu: Software de facturación y gestión contable
+- Factorial: Software de RRHH (unicornio)
+- Parkimeter: Reserva de parkings (vendida a EasyPark)
+- Playfulbet: Apuestas deportivas (vendida a Exogroup)
+- GymForLess: Marketplace de gimnasios (vendida a Sodexo)
+
+**Espacios Físicos:**
+- Oficinas en el distrito 22@ de Poblenou, Barcelona
+- Itnig Coffice: Coworking y eventos en Carrer Pujades 100
+- Restaurante Entrepreneur en Calle Pujades 85
+- Espacios de coworking disponibles para alquiler
+
+**Podcast:**
+- Itnig Podcast: Charlas honestas sobre emprendimiento, tecnología y negocio
+- Conducido por Bernat Farrero y Jordi Romero
+- Más de 200 episodios
+- Compartiendo aprendizajes en tiempo real con fundadores e inversores
 `;
 
 // Función para parsear el CSV del portfolio
