@@ -118,16 +118,23 @@ async function classifyQuestion(question, conversationHistory = []) {
     ? `Contexto de la conversación anterior: ${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\n`
     : '';
 
+  // Lista de empresas del portfolio para ayudar en la clasificación
+  const portfolioCompanies = portfolioData.map(company => company.name.toLowerCase());
+  
   const prompt = `
 ${ITNIG_CONTEXT}
 
 ${contextPrompt}
 
+Empresas del portfolio de itnig: ${portfolioCompanies.join(', ')}
+
 Clasifica la siguiente pregunta en una de estas categorías:
 - "podcast": Preguntas sobre el podcast, entrevistas, invitados, episodios
-- "investment": Preguntas sobre el fondo de inversión, portfolio, participadas, inversiones
+- "investment": Preguntas sobre el fondo de inversión, portfolio, participadas, inversiones, empresas específicas del portfolio
 - "real_estate": Preguntas sobre coworking, restaurante, espacios físicos
 - "general": Preguntas generales sobre itnig
+
+IMPORTANTE: Si la pregunta menciona una empresa específica del portfolio (como Latitude, Syra, Factorial, etc.), clasifícala como "investment".
 
 Pregunta: "${question}"
 
