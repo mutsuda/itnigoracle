@@ -297,6 +297,26 @@ async function handlePodcastQuestion(question, conversationHistory = []) {
 // Agente de Investment con RAG
 async function handleInvestmentQuestion(question, conversationHistory) {
   try {
+    // Detectar si es una pregunta sobre aplicar al fondo
+    const applyKeywords = [
+      'aplicar', 'aplicar al fondo', 'invertir en mi proyecto', 'invertir en mi startup',
+      'cómo aplicar', 'cómo puedo aplicar', 'quiero que inviertan', 'solicitar inversión',
+      'formulario', 'proceso de inversión', 'criterios de inversión', 'contactar para inversión',
+      'presentar proyecto', 'enviar proyecto', 'evaluar mi startup', 'considerar mi empresa'
+    ];
+    
+    const isApplyQuestion = applyKeywords.some(keyword => 
+      question.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    if (isApplyQuestion) {
+      return `Para aplicar al fondo de inversión de itnig, puedes visitar **itnig.net/fund** donde encontrarás el formulario de solicitud y toda la información necesaria sobre el proceso de inversión.
+
+El equipo de itnig revisa todas las propuestas y se pondrá en contacto contigo si tu proyecto encaja con su estrategia de inversión. Te recomiendo incluir información detallada sobre tu startup, modelo de negocio, equipo y proyecciones de crecimiento.
+
+🌐 **Enlace directo:** https://itnig.net/fund`;
+    }
+    
     // Buscar información relevante en el portfolio
     const searchResults = await searchPortfolio(question, 3);
     
