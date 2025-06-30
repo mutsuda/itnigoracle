@@ -134,14 +134,51 @@ function cosineSimilarity(vecA, vecB) {
   return dotProduct / (normA * normB);
 }
 
+// Función para crear embeddings bajo demanda
+async function ensureEmbeddings() {
+  if (portfolioEmbeddings.length > 0) {
+    return; // Ya tenemos embeddings
+  }
+  
+  if (portfolioData.length === 0) {
+    console.log('No hay datos del portfolio para crear embeddings');
+    return;
+  }
+  
+  console.log('Creando embeddings bajo demanda...');
+  try {
+    // Procesar todas las empresas del portfolio
+    portfolioEmbeddings = await createPortfolioEmbeddings(portfolioData);
+    console.log(`Embeddings creados para ${portfolioEmbeddings.length} empresas`);
+  } catch (error) {
+    console.error('Error creando embeddings:', error);
+  }
+}
+
+// Función para buscar por nombre exacto como fallback
+function searchByExactName(query) {
+  const queryLower = query.toLowerCase().trim();
+  return portfolioData.filter(company => {
+    const nameLower = (company.name || '').toLowerCase();
+    // Buscar coincidencias exactas o parciales en el nombre
+    return nameLower.includes(queryLower) || queryLower.includes(nameLower);
+  });
+}
+
 // Función para buscar en el portfolio usando RAG
 async function searchPortfolio(query, topK = 5) {
   // Asegurar que tenemos embeddings
   await ensureEmbeddings();
   
   if (portfolioEmbeddings.length === 0) {
-    console.log('No hay embeddings disponibles para buscar');
-    return [];
+    console.log('No hay embeddings disponibles, usando búsqueda por nombre exacto');
+    // Fallback: búsqueda por nombre exacto
+    const exactMatches = searchByExactName(query);
+    return exactMatches.map(company => ({
+      similarity: 1.0,
+      company: company,
+      text: `Empresa: ${company.name}\n${company.shortDescription || ''}\n${company.longDescription || ''}`
+    }));
   }
 
   try {
@@ -168,7 +205,13 @@ async function searchPortfolio(query, topK = 5) {
       .slice(0, topK);
   } catch (error) {
     console.error('Error buscando en portfolio:', error);
-    return [];
+    // Fallback: búsqueda por nombre exacto
+    const exactMatches = searchByExactName(query);
+    return exactMatches.map(company => ({
+      similarity: 1.0,
+      company: company,
+      text: `Empresa: ${company.name}\n${company.shortDescription || ''}\n${company.longDescription || ''}`
+    }));
   }
 }
 
@@ -192,28 +235,6 @@ async function initializePortfolio() {
     }
   } catch (error) {
     console.error('Error inicializando portfolio:', error);
-  }
-}
-
-// Función para crear embeddings bajo demanda
-async function ensureEmbeddings() {
-  if (portfolioEmbeddings.length > 0) {
-    return; // Ya tenemos embeddings
-  }
-  
-  if (portfolioData.length === 0) {
-    console.log('No hay datos del portfolio para crear embeddings');
-    return;
-  }
-  
-  console.log('Creando embeddings bajo demanda...');
-  try {
-    // Crear embeddings solo para las primeras 10 empresas para evitar timeout
-    const companiesToEmbed = portfolioData.slice(0, 10);
-    portfolioEmbeddings = await createPortfolioEmbeddings(companiesToEmbed);
-    console.log(`Embeddings creados para ${portfolioEmbeddings.length} empresas`);
-  } catch (error) {
-    console.error('Error creando embeddings:', error);
   }
 }
 
