@@ -11,8 +11,10 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
     "dotenv": "^16.6.1",
+    "express": "^5.1.0",
     "openai": "^4.20.1"
   },
   "devDependencies": {

@@ -177,19 +177,66 @@ async function handlePodcastQuestion(question, conversationHistory = []) {
 
     const data = await response.json();
     
+    console.log('🔍 Datos recibidos de la API del podcast:', JSON.stringify(data, null, 2));
+    
     if (data && data.length > 0) {
-      // Formatear la respuesta con la información encontrada
-      const clips = data.map(clip => 
-        `📺 **${clip.title}**\n${clip.text}\n🔗 ${clip.video_url}`
-      ).join('\n\n');
+      // Extraer el video_id de la URL para generar el thumbnail
+      const podcasts = data.map(clip => {
+        let videoId = null;
+        // Extraer videoId de cualquier formato de YouTube
+        // 1. youtu.be/VIDEO_ID
+        // 2. youtube.com/watch?v=VIDEO_ID
+        // 3. youtube.com/embed/VIDEO_ID
+        // 4. youtube.com/v/VIDEO_ID
+        // 5. youtube.com/shorts/VIDEO_ID
+        const patterns = [
+          /youtu\.be\/([\w-]{11})/, // youtu.be/VIDEO_ID
+          /[?&]v=([\w-]{11})/,      // v=VIDEO_ID
+          /embed\/([\w-]{11})/,    // embed/VIDEO_ID
+          /\/v\/([\w-]{11})/,      // /v/VIDEO_ID
+          /shorts\/([\w-]{11})/    // shorts/VIDEO_ID
+        ];
+        for (const pattern of patterns) {
+          const match = clip.video_url.match(pattern);
+          if (match) {
+            videoId = match[1];
+            break;
+          }
+        }
+        // Si no se pudo extraer, intentar extraer el primer grupo de 11 caracteres tras la última barra
+        if (!videoId) {
+          const fallback = clip.video_url.match(/\/([\w-]{11})(?:[?&]|$)/);
+          if (fallback) videoId = fallback[1];
+        }
+        return {
+          title: clip.title,
+          description: clip.text,
+          video_url: clip.video_url,
+          thumbnail: videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : 'https://img.youtube.com/vi/default/hqdefault.jpg',
+          start: clip.start || 0
+        };
+      });
       
-      return `He encontrado información relevante en el podcast de itnig:\n\n${clips}`;
+      // Devolver respuesta estructurada
+      return {
+        type: 'podcast',
+        response: `He encontrado información relevante en el podcast de itnig:`,
+        podcasts: podcasts
+      };
     } else {
-      return 'No encontré clips específicos sobre tu pregunta en el podcast de itnig.';
+      return {
+        type: 'podcast',
+        response: 'No encontré clips específicos sobre tu pregunta en el podcast de itnig.',
+        podcasts: []
+      };
     }
   } catch (error) {
     console.error('Error en agente podcast:', error);
-    return 'Lo siento, no puedo acceder a la información del podcast en este momento.';
+    return {
+      type: 'podcast',
+      response: 'Lo siento, no puedo acceder a la información del podcast en este momento.',
+      podcasts: []
+    };
   }
 }
 
@@ -420,9 +467,12 @@ export default async function handler(req, res) {
 
     // Enrutar a la agente correspondiente con contexto
     let response;
+    let responseData = {};
+    
     switch (classification) {
       case 'podcast':
-        response = await handlePodcastQuestion(question, conversation.messages);
+        responseData = await handlePodcastQuestion(question, conversation.messages);
+        response = responseData.response;
         break;
       case 'investment':
         response = await handleInvestmentQuestion(question, conversation.messages);
@@ -447,14 +497,22 @@ export default async function handler(req, res) {
       conversation.messages = conversation.messages.slice(-10);
     }
 
-    // Devolver respuesta
-    return res.status(200).json({
+    // Preparar respuesta final
+    const finalResponse = {
       response,
       classification,
       question,
       conversationId: conversationId || null,
       messageCount: conversation.messages.length
-    });
+    };
+
+    // Si es una respuesta de podcast, incluir los datos estructurados
+    if (classification === 'podcast' && responseData.podcasts) {
+      finalResponse.podcasts = responseData.podcasts;
+    }
+
+    // Devolver respuesta
+    return res.status(200).json(finalResponse);
 
   } catch (error) {
     console.error('Error en el endpoint:', error);
