@@ -299,17 +299,13 @@ async function handleInvestmentQuestion(question, conversationHistory) {
     );
     
     if (isApplyQuestion) {
-      return `Para aplicar al fondo de inversión de itnig, puedes visitar **itnig.net/fund** donde encontrarás el formulario de solicitud y toda la información necesaria sobre el proceso de inversión.
-
-El equipo de itnig revisa todas las propuestas y se pondrá en contacto contigo si tu proyecto encaja con su estrategia de inversión. Te recomiendo incluir información detallada sobre tu startup, modelo de negocio, equipo y proyecciones de crecimiento.
-
-🌐 **Enlace directo:** https://itnig.net/fund`;
+      return `Para aplicar al fondo de inversión de itnig: **itnig.net/fund**`;
     }
     
-    // Crear contexto con todo el portfolio
+    // Crear contexto con todo el portfolio (solo información procesada)
     let portfolioContext = '';
     if (portfolioData.length > 0) {
-      portfolioContext = '\n\nPortfolio completo de itnig:\n';
+      portfolioContext = '\n\nPortfolio de empresas de itnig:\n';
       portfolioData.forEach((company, index) => {
         portfolioContext += `\n${index + 1}. **${company.name}**
 - Fundadores: ${company.founders || 'No especificado'}
@@ -327,31 +323,25 @@ El equipo de itnig revisa todas las propuestas y se pondrá en contacto contigo 
 
 IMPORTANTE: Solo puedes mencionar empresas que estén en la información del portfolio que te proporciono. NO inventes ni menciones empresas que no aparezcan en los datos.
 
-Tienes conocimiento de:
-- Las empresas del portfolio (activas y exitadas)
-- La estrategia de inversión de itnig
-- Los sectores de enfoque
-- Los vehículos de inversión (IFO1, IFO2, Owned)
-
 ${conversationHistory ? `Historial de la conversación:\n${conversationHistory}\n` : ''}
 
 Pregunta: "${question}"${portfolioContext}
 
-Responde de manera natural y útil, manteniendo el contexto de la conversación. SOLO menciona empresas que aparezcan en la información del portfolio proporcionada. Si no hay información específica sobre una empresa, di que no tienes esa información en lugar de inventar.`;
+Responde de manera concisa y directa. Si no tienes información sobre algo, di simplemente "No tengo información sobre eso" sin añadir explicaciones innecesarias.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "Eres un asesor de inversiones experto en el portfolio de itnig. Proporciona respuestas detalladas, precisas y útiles basadas ÚNICAMENTE en el conocimiento del portfolio que se te proporciona. NO inventes información sobre empresas que no estén en los datos."
+          content: "Eres un asesor de inversiones experto en el portfolio de itnig. Responde de manera concisa y directa. Si no tienes información sobre algo, di simplemente 'No tengo información sobre eso'."
         },
         {
           role: "user",
           content: context
         }
       ],
-      max_tokens: 1000,
+      max_tokens: 500,
       temperature: 0.7
     });
 
@@ -373,7 +363,7 @@ ${ITNIG_CONTEXT}
 
 ${contextPrompt}
 
-Responde a la siguiente pregunta sobre los espacios físicos de itnig de manera clara y concisa, considerando el contexto de la conversación:
+Responde a la siguiente pregunta sobre los espacios físicos de itnig de manera concisa y directa:
 
 Pregunta: "${question}"
 
@@ -398,14 +388,13 @@ Información específica sobre real estate de itnig:
 **Información de Contacto:**
 - Para más información sobre coworking: itnig.net/coworking
 
-Responde de manera natural y útil, manteniendo el contexto de la conversación. Siempre menciona la web itnig.net/coworking para más información cuando sea relevante:
-`;
+Responde de manera concisa. Si no tienes información sobre algo, di simplemente "No tengo información sobre eso".`;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 300,
+      max_tokens: 200,
       temperature: 0.7,
     });
 
@@ -427,18 +416,17 @@ ${ITNIG_CONTEXT}
 
 ${contextPrompt}
 
-Responde a la siguiente pregunta general sobre itnig de manera clara y concisa, considerando el contexto de la conversación:
+Responde a la siguiente pregunta general sobre itnig de manera concisa y directa:
 
 Pregunta: "${question}"
 
-Responde de manera natural y útil, proporcionando información relevante sobre itnig y manteniendo el contexto de la conversación:
-`;
+Responde de manera concisa. Si no tienes información sobre algo, di simplemente "No tengo información sobre eso".`;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 300,
+      max_tokens: 200,
       temperature: 0.7,
     });
 
