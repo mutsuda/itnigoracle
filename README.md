@@ -1,37 +1,64 @@
-# 🚀 Backend de IA para itnig
+# 🚀 Oráculo de IA para itnig
 
-Backend inteligente con agentes especializados para responder preguntas sobre itnig usando Vercel Edge Functions y OpenAI. **¡Ahora con sistema RAG dinámico para el portfolio y soporte para conversaciones con contexto!**
+Backend inteligente con agentes especializados para responder preguntas sobre itnig usando Vercel Serverless Functions y OpenAI. **Sistema de agentes expertos con clasificación automática y conversaciones con contexto.**
 
 ## 🎯 Características
 
 - **Endpoint único**: `POST /api/query`
 - **Clasificación automática** de preguntas usando IA
-- **🆕 Sistema RAG dinámico** - Procesa automáticamente el CSV del portfolio
-- **🆕 Conversaciones con contexto** - Mantiene memoria de la conversación
+- **🆕 Sistema de conversaciones** - Mantiene memoria de la conversación
 - **💰 Portfolio dinámico** - Se actualiza automáticamente desde el CSV
-- **4 agentes especializados**:
-  - 🎙️ **Podcast**: Usa API existente para preguntas sobre el podcast
-  - 💰 **Investment**: Preguntas sobre fondo, portfolio, participadas (con RAG dinámico)
-  - 🏢 **Real Estate**: Preguntas sobre coworking, restaurante, espacios
-  - ℹ️ **General**: Preguntas generales sobre itnig
+- **5 agentes especializados**:
+  - 🎙️ **Podcast**: Usa API externa para búsqueda en episodios del podcast
+  - 💰 **Investment**: Preguntas sobre fondo, portfolio, empresas participadas
+  - 🏢 **Real Estate**: Preguntas sobre coworking, restaurante, espacios físicos
+  - ℹ️ **General**: Preguntas generales sobre itnig (historia, evolución, modelo)
+  - 🤖 **Clasificador**: Determina qué agente debe responder
 
-## 🔧 Sistema RAG (Retrieval-Augmented Generation)
+## 🏗️ Arquitectura del Sistema
 
-### ¿Qué es RAG?
-El sistema RAG permite que la IA acceda dinámicamente a la información del portfolio sin necesidad de hardcodear datos. 
+### Flujo de Funcionamiento
+```mermaid
+graph TD
+    A[Usuario envía pregunta] --> B[Validar entrada]
+    B --> C[Obtener/crear conversación]
+    C --> D[Clasificar pregunta con IA]
+    D --> E{¿Qué tipo?}
+    
+    E -->|podcast| F[Agente Podcast]
+    E -->|investment| G[Agente Inversión]
+    E -->|real_estate| H[Agente Real Estate]
+    E -->|general| I[Agente General]
+    
+    F --> J[Actualizar historial]
+    G --> J
+    H --> J
+    I --> J
+    
+    J --> K[Devolver respuesta]
+```
 
-### ¿Cómo funciona?
-1. **Lectura automática**: Lee el archivo `portfolio.csv` al iniciar
-2. **Creación de embeddings**: Genera representaciones vectoriales de cada empresa
-3. **Búsqueda semántica**: Cuando preguntas, encuentra las empresas más relevantes
-4. **Respuestas contextuales**: Usa la información encontrada para responder
+### Agentes Especializados
 
-### Ventajas del RAG vs datos hardcodeados
-- ✅ **Siempre actualizado**: Solo actualiza el CSV
-- ✅ **Escalable**: No necesita cambios de código para nuevas empresas
-- ✅ **Preciso**: Usa datos reales del portfolio
-- ✅ **Flexible**: Puede responder consultas complejas
-- ✅ **Mantenible**: Una sola fuente de verdad (archivo CSV)
+#### 🎙️ **Agente de Podcast**
+- **API Externa**: `https://itnig-search-api-555158784456.europe-southwest1.run.app/search`
+- **Funcionalidad**: Búsqueda semántica en episodios del podcast
+- **Respuesta**: Clips relevantes con timestamps y thumbnails de YouTube
+- **Datos**: `video_url`, `start_time`, `end_time`, `text`
+
+#### 💰 **Agente de Inversión**
+- **Base de Datos**: CSV `portfolio.csv` con empresas invertidas
+- **Funcionalidad**: Información detallada sobre portfolio y empresas específicas
+- **Datos**: Nombre, descripción, fundadores, estado, sector, etc.
+
+#### 🏢 **Agente de Real Estate**
+- **Funcionalidad**: Información sobre espacios físicos de itnig
+- **Datos**: Coworking, restaurante Entrepreneur, ubicaciones, servicios
+
+#### ℹ️ **Agente General**
+- **Contexto**: Información completa de itnig desde `context.txt`
+- **Funcionalidad**: Historia, evolución, modelo de negocio, éxitos
+- **Datos**: Fundación (2010), empresas creadas, exits, espacios físicos
 
 ## 📊 Estructura del Portfolio
 
@@ -57,7 +84,7 @@ Name,visibility,founders,short_description_en,long_description_en,Twitter,Linked
 ### 1. Clonar el repositorio
 ```bash
 git clone <tu-repositorio>
-cd itnig-ai-backend
+cd oracle
 ```
 
 ### 2. Instalar dependencias
@@ -113,11 +140,12 @@ POST /api/query
 ### Formato de salida
 ```json
 {
-  "response": "itnig es un hub de innovación en Barcelona que...",
+  "response": "itnig es un ecosistema integral de startups fundado en Barcelona en 2010...",
   "classification": "general",
   "question": "¿Qué es itnig?",
   "conversationId": "mi-conversacion-123",
-  "messageCount": 4
+  "messageCount": 4,
+  "podcasts": [/* Solo si es podcast */]
 }
 ```
 
@@ -141,7 +169,7 @@ curl -X POST https://tu-dominio.vercel.app/api/query \
     "conversationId": "conv-001"
   }'
 
-# Respuesta: "itnig es un hub de innovación en Barcelona..."
+# Respuesta: "itnig es un ecosistema integral de startups fundado en Barcelona en 2010..."
 
 # Mensaje 2: Seguir conversación
 curl -X POST https://tu-dominio.vercel.app/api/query \
@@ -161,16 +189,16 @@ curl -X POST https://tu-dominio.vercel.app/api/query \
     "conversationId": "conv-001"
   }'
 
-# Respuesta: "itnig ha invertido en empresas como Factorial, Holded, Typeform..." (mantiene contexto completo)
+# Respuesta: "itnig ha invertido en empresas como Factorial, Quipu, Camaloon..." (mantiene contexto completo)
 ```
 
 ## 🧪 Ejemplos de uso
 
-### Ejemplo 1: Pregunta individual
+### Ejemplo 1: Pregunta sobre podcast
 ```bash
 curl -X POST https://tu-dominio.vercel.app/api/query \
   -H "Content-Type: application/json" \
-  -d '{"question": "¿Qué es itnig?"}'
+  -d '{"question": "¿Qué episodios hablan sobre inversión?"}'
 ```
 
 ### Ejemplo 2: Conversación sobre portfolio
@@ -192,23 +220,11 @@ curl -X POST https://tu-dominio.vercel.app/api/query \
   }'
 ```
 
-### Ejemplo 3: Conversación sobre podcast
+### Ejemplo 3: Pregunta sobre espacios físicos
 ```bash
-# Iniciar conversación
 curl -X POST https://tu-dominio.vercel.app/api/query \
   -H "Content-Type: application/json" \
-  -d '{
-    "question": "¿Tienen podcast?",
-    "conversationId": "podcast-chat"
-  }'
-
-# Seguir conversación
-curl -X POST https://tu-dominio.vercel.app/api/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "¿Quién ha sido el último invitado?",
-    "conversationId": "podcast-chat"
-  }'
+  -d '{"question": "¿Tienen espacios de coworking disponibles?"}'
 ```
 
 ## 🔄 Actualizar Datos del Portfolio
@@ -228,17 +244,9 @@ vercel --prod
 
 El sistema automáticamente:
 - Procesa el CSV actualizado
-- Crea nuevos embeddings
 - Hace la información disponible para consultas
 
 ## 🧪 Testing
-
-### Probar el sistema RAG
-```bash
-node test-rag.js
-```
-
-Esto probará varias consultas contra los datos del portfolio para asegurar que el sistema RAG funciona correctamente.
 
 ### Probar la API
 ```bash
@@ -247,36 +255,59 @@ curl -X POST https://tu-dominio.vercel.app/api/query \
   -d '{"question": "¿En qué empresas invierte itnig?"}'
 ```
 
-## 📝 Ejemplos de Consultas
+### Probar diferentes tipos de preguntas
+```bash
+# Podcast
+curl -X POST https://tu-dominio.vercel.app/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "¿Qué episodios hablan sobre emprendimiento?"}'
 
-### Portfolio de Inversiones
+# Inversión
+curl -X POST https://tu-dominio.vercel.app/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "¿Qué empresas fintech están en el portfolio?"}'
+
+# Real Estate
+curl -X POST https://tu-dominio.vercel.app/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "¿Dónde está el coworking de itnig?"}'
+
+# General
+curl -X POST https://tu-dominio.vercel.app/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "¿Cuándo se fundó itnig?"}'
+```
+
+## 📝 Ejemplos de Consultas por Categoría
+
+### 🎙️ Podcast
+- "¿Qué episodios hablan sobre inversión?"
+- "¿Quién ha sido el último invitado del podcast?"
+- "¿Qué temas cubre el podcast de itnig?"
+- "Háblame del episodio sobre Factorial"
+
+### 💰 Portfolio de Inversiones
 - "Háblame de Factorial"
 - "¿Qué empresas fintech están en el portfolio?"
-- "¿Quiénes son los fundadores de Payflow?"
+- "¿Quiénes son los fundadores de Quipu?"
 - "¿Cuál es la estrategia de inversión de itnig?"
 - "Muéstrame empresas exitadas"
+- "¿En qué sectores invierte itnig?"
 
-### Podcast
-- "Háblame del podcast de itnig"
-- "¿Qué temas cubre el podcast?"
-- "¿Quiénes son los invitados del podcast?"
+### 🏢 Real Estate
+- "¿Tienen espacios de coworking disponibles?"
+- "¿Dónde está el restaurante Entrepreneur?"
+- "¿Puedo alquilar una oficina en itnig?"
+- "¿Qué servicios ofrecen en el coworking?"
+- "¿Dónde están ubicados los espacios de itnig?"
 
-### General
+### ℹ️ General
 - "¿Qué es itnig?"
-- "¿Dónde está ubicado itnig?"
-- "¿Qué hace itnig?"
-
-## 🏗️ Arquitectura
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Consulta      │───▶│  Clasificación  │───▶│  Búsqueda RAG   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                       │
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Respuesta      │◀───│  Generación IA  │◀───│  Datos Portfolio│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+- "¿Cuándo se fundó itnig?"
+- "¿Cómo ha evolucionado itnig?"
+- "¿Qué empresas ha creado itnig?"
+- "¿Cuáles han sido los mayores éxitos de itnig?"
+- "¿Quién fundó itnig?"
 
 ## 🔧 Configuración
 
@@ -288,19 +319,41 @@ curl -X POST https://tu-dominio.vercel.app/api/query \
 - Debe estar en el directorio raíz
 - Debe tener los headers de columnas esperados
 
+### Configuración CORS
+El sistema está configurado para permitir peticiones desde cualquier origen:
+```javascript
+res.setHeader('Access-Control-Allow-Origin', '*');
+res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+```
+
 ## 📈 Rendimiento
 
-- **Inicialización**: ~2-3 segundos para cargar y embeber datos del portfolio
-- **Respuesta de consulta**: ~1-2 segundos para consultas típicas
+- **Inicialización**: ~1-2 segundos para cargar datos del portfolio
+- **Respuesta de consulta**: ~1-3 segundos para consultas típicas
 - **Uso de memoria**: ~50-100MB dependiendo del tamaño del portfolio
 - **Escalabilidad**: Soporta portfolios con cientos de empresas
+
+## 🚀 Próximas Funcionalidades
+
+### En Desarrollo
+- **Agente de Postulaciones**: Sistema automatizado para startups que quieren postularse
+- **Base de Datos Persistente**: Para guardar conversaciones y postulaciones
+- **Sistema de Email**: Para enviar postulaciones a Marcel
+- **Evaluación Automática**: IA que evalúa startups y genera recomendaciones
+
+### Roadmap
+- **Métricas y Analytics**: Dashboard para ver uso del oráculo
+- **Integración con CRM**: Conectar con herramientas de gestión de leads
+- **API de Webhooks**: Para notificaciones en tiempo real
+- **Multiidioma**: Soporte para catalán e inglés
 
 ## 🤝 Contribuir
 
 1. Fork el repositorio
 2. Crea una rama de feature
 3. Haz tus cambios
-4. Prueba con `node test-rag.js`
+4. Prueba con diferentes tipos de consultas
 5. Envía un pull request
 
 ## 📄 Licencia
@@ -313,7 +366,7 @@ Para problemas o preguntas:
 1. Revisa los logs en el dashboard de Vercel
 2. Verifica el formato de tu archivo CSV
 3. Asegúrate de que tu API key de OpenAI sea válida
-4. Prueba con el script de test proporcionado
+4. Prueba con diferentes tipos de consultas
 
 ---
 
