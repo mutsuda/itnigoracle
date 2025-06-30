@@ -218,7 +218,7 @@ async function searchPortfolio(query, topK = 5) {
 // Función para inicializar datos del portfolio
 async function initializePortfolio() {
   try {
-    console.log('Inicializando datos del portfolio...');
+    console.log('Inicializando datos del portfolio...', new Date().toISOString());
     const csvPath = path.join(process.cwd(), 'portfolio.csv');
     console.log('Ruta del CSV:', csvPath);
     console.log('¿Existe el archivo?', fs.existsSync(csvPath));
@@ -228,6 +228,7 @@ async function initializePortfolio() {
     
     if (portfolioData.length > 0) {
       console.log('Primera empresa:', portfolioData[0].name);
+      console.log('Última empresa:', portfolioData[portfolioData.length - 1].name);
       // No crear embeddings inmediatamente para evitar timeout
       console.log('Portfolio inicializado con datos. Los embeddings se crearán bajo demanda.');
     } else {
@@ -238,7 +239,7 @@ async function initializePortfolio() {
   }
 }
 
-// Inicializar portfolio al arrancar
+// Inicializar portfolio al arrancar - Timestamp: 2025-01-27
 initializePortfolio();
 
 // Función para clasificar la pregunta
