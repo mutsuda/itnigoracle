@@ -136,7 +136,11 @@ function cosineSimilarity(vecA, vecB) {
 
 // Función para buscar en el portfolio usando RAG
 async function searchPortfolio(query, topK = 5) {
+  // Asegurar que tenemos embeddings
+  await ensureEmbeddings();
+  
   if (portfolioEmbeddings.length === 0) {
+    console.log('No hay embeddings disponibles para buscar');
     return [];
   }
 
@@ -181,13 +185,35 @@ async function initializePortfolio() {
     
     if (portfolioData.length > 0) {
       console.log('Primera empresa:', portfolioData[0].name);
-      portfolioEmbeddings = await createPortfolioEmbeddings(portfolioData);
-      console.log(`Portfolio inicializado con ${portfolioData.length} empresas y ${portfolioEmbeddings.length} embeddings`);
+      // No crear embeddings inmediatamente para evitar timeout
+      console.log('Portfolio inicializado con datos. Los embeddings se crearán bajo demanda.');
     } else {
       console.log('No se cargaron empresas del portfolio');
     }
   } catch (error) {
     console.error('Error inicializando portfolio:', error);
+  }
+}
+
+// Función para crear embeddings bajo demanda
+async function ensureEmbeddings() {
+  if (portfolioEmbeddings.length > 0) {
+    return; // Ya tenemos embeddings
+  }
+  
+  if (portfolioData.length === 0) {
+    console.log('No hay datos del portfolio para crear embeddings');
+    return;
+  }
+  
+  console.log('Creando embeddings bajo demanda...');
+  try {
+    // Crear embeddings solo para las primeras 10 empresas para evitar timeout
+    const companiesToEmbed = portfolioData.slice(0, 10);
+    portfolioEmbeddings = await createPortfolioEmbeddings(companiesToEmbed);
+    console.log(`Embeddings creados para ${portfolioEmbeddings.length} empresas`);
+  } catch (error) {
+    console.error('Error creando embeddings:', error);
   }
 }
 
