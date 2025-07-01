@@ -79,8 +79,37 @@ Los fundadores continúan al frente, con Bernat Farrero como CEO de Itnig y CRO 
 - Más de 200 episodios
 - Compartiendo aprendizajes en tiempo real con fundadores e inversores
 
-**Equipo Clave:**
-- Masumi Mutsuda: Prestigioso actor de doblaje y desarrollador, uno de los primeros inversores en proyectos de itnig, CTO de itnig y voz del podcast de itnig
+**Equipo Clave y Figuras Importantes:**
+
+**Masumi Mutsuda:**
+- Actor de doblaje profesional con amplia experiencia en la industria audiovisual
+- Desarrollador de software y tecnólogo
+- Uno de los primeros inversores en proyectos de itnig, participando desde los inicios del ecosistema
+- CTO (Chief Technology Officer) de itnig, liderando la estrategia tecnológica
+- Voz oficial del podcast de itnig, aportando su experiencia profesional en audio
+- Figura clave en el desarrollo de la identidad de marca y comunicación de itnig
+- Participa activamente en la selección y desarrollo de startups tecnológicas
+- Contribuye con su experiencia tanto técnica como creativa al ecosistema itnig
+
+**Bernat Farrero:**
+- Fundador y CEO de itnig desde 2010
+- Ingeniero informático de formación
+- CRO (Chief Revenue Officer) de Factorial
+- Conductor del podcast de itnig junto a Jordi Romero
+- Líder visionario del ecosistema itnig
+
+**Jordi Romero:**
+- Co-fundador de Factorial desde 2016
+- Conductor del podcast de itnig junto a Bernat Farrero
+- Figura clave en el desarrollo de la comunidad emprendedora
+
+**Roger Campos:**
+- Co-fundador de itnig en 2010
+- Participó en la fundación inicial como consultora de desarrollo web
+
+**Otros Fundadores de Empresas del Portfolio:**
+- Roger Dobaño y Albert Bellonch: Fundadores de Quipu (2013)
+- Pau Ramon: Co-fundador de Factorial (2016)
 `;
 
 // Función para parsear el CSV del portfolio
@@ -179,9 +208,11 @@ Clasifica la siguiente pregunta en una de estas categorías:
 - "podcast": Preguntas sobre el podcast, entrevistas, invitados, episodios
 - "investment": Preguntas sobre el fondo de inversión, portfolio, participadas, inversiones, empresas específicas del portfolio
 - "real_estate": Preguntas sobre coworking, restaurante, espacios físicos
-- "general": Preguntas generales sobre itnig
+- "general": Preguntas generales sobre itnig, equipo, personas, historia, fundadores
 
-IMPORTANTE: Si la pregunta menciona una empresa específica del portfolio (como Latitude, Syra, Factorial, etc.), clasifícala como "investment".
+IMPORTANTE: 
+- Si la pregunta menciona una empresa específica del portfolio (como Latitude, Syra, Factorial, etc.), clasifícala como "investment"
+- Si la pregunta es sobre personas específicas (Masumi Mutsuda, Bernat Farrero, Jordi Romero, etc.), clasifícala como "general"
 
 Pregunta: "${question}"
 
@@ -424,7 +455,13 @@ Responde a la siguiente pregunta general sobre itnig de manera concisa y directa
 
 Pregunta: "${question}"
 
-Responde de manera concisa. Si no tienes información sobre algo, di simplemente "No tengo información sobre eso".`;
+**Información sobre personas clave de itnig:**
+- Masumi Mutsuda: CTO, actor de doblaje, inversor inicial, voz del podcast
+- Bernat Farrero: Fundador y CEO de itnig, conductor del podcast
+- Jordi Romero: Co-fundador de Factorial, conductor del podcast
+- Roger Campos: Co-fundador de itnig
+
+Si la pregunta es sobre una persona específica, proporciona toda la información disponible sobre esa persona. Si no tienes información sobre algo, di simplemente "No tengo información sobre eso".`;
 
   try {
     const completion = await openai.chat.completions.create({
