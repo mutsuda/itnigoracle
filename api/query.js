@@ -75,8 +75,12 @@ Los fundadores continúan al frente, con Bernat Farrero como CEO de Itnig y CRO 
 **Podcast:**
 - Itnig Podcast: Charlas honestas sobre emprendimiento, tecnología y negocio
 - Conducido por Bernat Farrero y Jordi Romero
+- Voz del podcast: Masumi Mutsuda
 - Más de 200 episodios
 - Compartiendo aprendizajes en tiempo real con fundadores e inversores
+
+**Equipo Clave:**
+- Masumi Mutsuda: Prestigioso actor de doblaje y desarrollador, uno de los primeros inversores en proyectos de itnig, CTO de itnig y voz del podcast de itnig
 `;
 
 // Función para parsear el CSV del portfolio
